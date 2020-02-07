@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.ExecutorService;
 
-import static com.streaming.file.FileService.retrieveSplitFiles;
 import static java.lang.Long.MAX_VALUE;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
@@ -22,7 +21,6 @@ public class ThreadService {
     public void waitForTasksToBeCompleted() {
         try {
             executorService.awaitTermination(MAX_VALUE, NANOSECONDS);
-            retrieveSplitFiles();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

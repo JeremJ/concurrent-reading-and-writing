@@ -1,7 +1,9 @@
 package com.streaming.file;
 
 import com.streaming.share.SharedResource;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,27 +17,28 @@ import static java.nio.file.Files.readAllBytes;
 import static java.nio.file.Paths.get;
 
 @RequiredArgsConstructor
+@Setter
+@Getter
 public class FileService implements Runnable {
 
     private static final String FILENAME_PATTERN = "%s.dat";
-    private static final String RETRIEVED_FILENAME = "video.mp4";
-    public static Set<String> savedFileNames = new TreeSet<>();
+    private final Set<String> savedFileNames = new TreeSet<>();
 
     private final BlockingQueue<SharedResource> resourceQueue;
     private final Long fileSize;
 
-    public static void writeBytesToFile(byte[] bytes) {
-        try (var outputStream = new FileOutputStream(RETRIEVED_FILENAME, true)) {
+    private void writeBytesToFile(byte[] bytes, String retrievedFileName) {
+        try (var outputStream = new FileOutputStream(retrievedFileName, true)) {
             outputStream.write(bytes);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void retrieveSplitFiles() {
+    public void retrieveSplitFiles(String retrievedFileName) {
         savedFileNames.forEach(currentFile -> {
             try {
-                writeBytesToFile(readAllBytes(get(currentFile)));
+                writeBytesToFile(readAllBytes(get(currentFile)), retrievedFileName);
             } catch (IOException e) {
                 e.printStackTrace();
             }

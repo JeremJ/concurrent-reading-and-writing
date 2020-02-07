@@ -1,60 +1,53 @@
 package com.streaming.thread;
 
-import com.streaming.file.FileService;
-import com.streaming.http.StreamingResource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import static com.streaming.Main.producersFinish;
-import static java.lang.Long.MAX_VALUE;
-import static java.util.concurrent.Executors.newCachedThreadPool;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ThreadServiceTest {
 
-    private final ExecutorService executor = newCachedThreadPool();
+    @Mock
+    private ExecutorService executorService;
 
-    @Mock
-    private FileService fileService;
-    @Mock
-    private StreamingResource streamingResource;
+    @InjectMocks
+    private ThreadService threadService;
 
     @Test
-    void shouldExecuteConsumerRunMethodOnce() {
+    void shouldExecuteThreadRunMethodTwice() {
         //given
         producersFinish = true;
 
         //when
-        executor.execute(new Thread(fileService));
-        shutdownAndWaitForTermination();
+        threadService.runThreads(2, any());
 
         //then
-        verify(fileService).run();
+        verify(executorService, times(2)).execute(any(Runnable.class));
     }
 
     @Test
-    void shouldExecuteProducerRunMethodOnce() {
+    void shouldThrownNullPointerExceptionWhenRunMethodFailed() throws InterruptedException {
+        //given
+        doThrow(RejectedExecutionException.class).when(executorService).execute(any());
 
         //when
-        executor.execute(new Thread(streamingResource));
-        shutdownAndWaitForTermination();
+        Throwable throwable = catchThrowable(() -> threadService.runThreads(1, any()));
 
         //then
-        verify(streamingResource).run();
+        assertThat(throwable)
+                .isInstanceOf(RejectedExecutionException.class);
     }
 
-    private void shutdownAndWaitForTermination() {
-        try {
-            executor.shutdown();
-            executor.awaitTermination(MAX_VALUE, NANOSECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+
 }
