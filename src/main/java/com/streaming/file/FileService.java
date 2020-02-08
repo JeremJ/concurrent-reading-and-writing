@@ -27,14 +27,6 @@ public class FileService implements Runnable {
     private final BlockingQueue<SharedResource> resourceQueue;
     private final Long fileSize;
 
-    private void writeBytesToFile(byte[] bytes, String retrievedFileName) {
-        try (var outputStream = new FileOutputStream(retrievedFileName, true)) {
-            outputStream.write(bytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void retrieveSplitFiles(String retrievedFileName) {
         savedFileNames.forEach(currentFile -> {
             try {
@@ -43,6 +35,14 @@ public class FileService implements Runnable {
                 e.printStackTrace();
             }
         });
+    }
+
+    private void writeBytesToFile(byte[] bytes, String retrievedFileName) {
+        try (var outputStream = new FileOutputStream(retrievedFileName, true)) {
+            outputStream.write(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void writeToFileAndStoreFileName(String fileName, byte[] content) {
